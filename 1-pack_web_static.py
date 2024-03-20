@@ -1,36 +1,22 @@
-import unittest
-import MySQLdb
+#!/usr/bin/python3
+# Fabfile to generates a .tgz archive from the contents of web_static.
+import os.path
+from datetime import datetime
+from fabric.api import local
 
-class TestMySQLFunctionality(unittest.TestCase):
-	@classmethod
-	def setUpClass(cls):
-	# Connect to the MySQL database
-	cls.db = MySQLdb.connect(host="localhost",
-				user="hbnb_test",
-				password="hbnb_test_pwd",
-				db="hbnb_test_db")
-	cls.cursor = cls.db.cursor()
 
-	@classmethod
-	def tearDownClass(cls):
-	# Close the database connection
-	cls.db.close()
-
-	def test_create_state(self):
-	# Get the initial count of records in the states table
-	self.cursor.execute("SELECT COUNT(*) FROM states")
-	initial_count = self.cursor.fetchone()[0]
-
-	# Execute the console command (assuming it's a function in your codebase)
-	# For example: create_state("California")
-	create_state_command = ... # Your code to execute the command
-
-        # Get the count of records again
-        self.cursor.execute("SELECT COUNT(*) FROM states")
-        final_count = self.cursor.fetchone()[0]
-
-	# Assert that the count has increased by 1
-	self.assertEqual(final_count, initial_count + 1)
-
-if __name__ == '__main__':
-    unittest.main()
+def do_pack():
+    """Create a tar gzipped archive of the directory web_static."""
+    dt = datetime.utcnow()
+    file = "versions/web_static_{}{}{}{}{}{}.tgz".format(dt.year,
+                                                         dt.month,
+                                                         dt.day,
+                                                         dt.hour,
+                                                         dt.minute,
+                                                         dt.second)
+    if os.path.isdir("versions") is False:
+        if local("mkdir -p versions").failed is True:
+            return None
+    if local("tar -cvzf {} web_static".format(file)).failed is True:
+        return None
+    return file
